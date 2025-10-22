@@ -7,8 +7,6 @@ published: false
 publication_name: omakase
 ---
 
-第 2 候補の title: "本番 API の改ざんを徹底解明 ー CI/CD からの侵入と防御策"。
-
 ## 前回の振り返り
 
 前回の記事では、60 億円の流出が発生したのはトランザクションが書き換えられ、悪意のあるコードが実行されてしまったことが原因でした。ではどのような攻撃手法でトランザクションを書き換えることができたのでしょうか。続報([リンク](https://www.kiln.fi/post/kiln-sabisunozai-jia-dong-oyobisekiyuriteiinsidentoniguan-suruqing-bao))をもとに分析していきます。
