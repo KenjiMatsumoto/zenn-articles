@@ -7,7 +7,9 @@
     "lint": "textlint --fix articles/**",
     "lint-check": "textlint articles/**",
     "markdown-check": "markdown-link-check ./articles/** --config 'markdown-link-check.json'",
-    "prepare": "husky"
+    "prepare": "husky",
+    "create-article": "zenn new:article --publication-name omakase",
+    "preview": "zenn preview"
   },
   "lint-staged": {
     "articles/**/*.md": [
