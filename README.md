@@ -16,7 +16,7 @@
 ## 記事作成/投稿手順
 ### STEP1. 記事タイトル(仮決め)・アウトラインの作成
 1. `main`ブランチから`<slug名>/step-1`というブランチを切る
-2. 記事ファイルをコマンドで作成 `pnpm exec zenn new:article --publication-name omakase`
+2. 記事ファイルをコマンドで作成 `pnpm create-article`
 3. ファイル名を変更する（ファイル名はslugとなるため一意でなければならない。ランダムではなく意味のある文字列かつ一意にすること）
  [参考](https://zenn.dev/zenn/articles/what-is-slug)
 4. タイトル・アウトライン、各アウトラインの要約を書く
@@ -29,7 +29,7 @@
 2. 記事本文を執筆する
  - 画像はimages/<slug名>/~~.jpgのようなルールで配置する
  [画像ファイル配置方法](https://zenn.dev/zenn/articles/deploy-github-images)  
- - `pnpm exec zenn preview`でプレビューしながら記事を書ける 
+ - `pnpm preview`でプレビューしながら記事を書ける 
 3. タイトルを本決めする
 4. 記事のPRを出し、 @43z708 にレビューを依頼する
 5. approveされたら`main`ブランチにマージすることで下書きとしてデプロイされる
