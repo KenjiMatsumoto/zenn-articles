@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "lint": "textlint --fix articles/**",
-    "lint-check": "textlint articles/**",
+    "lint": "textlint --fix articles/** && markdownlint --fix articles/**",
+    "lint-check": "textlint articles/** && markdownlint articles/**",
     "markdown-check": "markdown-link-check ./articles/** --config 'markdown-link-check.json'",
     "prepare": "husky",
     "create-article": "zenn new:article --publication-name omakase",

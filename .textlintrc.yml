@@ -6,7 +6,9 @@ rules:
     max: 3
     touten: "、"
     kuten: "。"
-  preset-ja-technical-writing: true # 技術文書向けの文体・表記ルールのプリセット
+  preset-ja-technical-writing: # 技術文書向けの文体・表記ルールのプリセット
+    sentence-length:
+      max: 200
   preset-ja-spacing: # 和文/欧文の空白・記号の間隔ルールのプリセット
     ja-space-between-half-and-full-width: # 全角と半角の間のスペース有無（preset 内サブルールを上書き）
       space: "always"
