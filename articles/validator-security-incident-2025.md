@@ -180,14 +180,15 @@ flowchart TB
     end
 
     subgraph Actions["GitHub Actions"]
-        Workflow[Workflow実行]
+        Workflow[Workflow実行
+<small>permissions: read</small>]
         Env[Environment: production]
     end
 
     subgraph Security["セキュリティ対策"]
         Approval[レビュワー承認]
-        MinPerm[権限最小化<br/>permissions: read]
-        EnvSecret[Environment Secrets<br/>本番認証情報]
+        EnvSecret[Environment Secrets
+本番認証情報]
     end
 
     subgraph Production["本番環境"]
@@ -200,14 +201,12 @@ flowchart TB
     Workflow --> Env
     Env --> Approval
     Approval -->|承認後のみ| EnvSecret
-    Workflow --> MinPerm
     EnvSecret --> Deploy
-    MinPerm --> Deploy
     Deploy --> Cloud
 
     style Approval fill:#ccffcc,stroke:#00cc00,stroke-width:2px
-    style MinPerm fill:#ccffcc,stroke:#00cc00,stroke-width:2px
     style EnvSecret fill:#ccffcc,stroke:#00cc00,stroke-width:2px
+    style Workflow fill:#cce5ff,stroke:#0066cc,stroke-width:2px
     style PR fill:#ffcccc,stroke:#cc0000,stroke-width:2px
 ```
 
@@ -331,13 +330,13 @@ jobs:
 本稿のインシデントでは、攻撃者はブランチを大量に作成・削除して CI をトリガーしました。このような異常なアクティビティを早期に検知するためには、GitHub の監査ログを常時 SIEM（Security Information and Event Management）ツールや Slack などに転送し、監視する仕組みを構築しましょう。
 
 ```mermaid
-flowchart LR
+flowchart TB
     subgraph GitHub["GitHub Organization"]
         Events[監視対象イベント]
         AuditLog[Audit Log API]
     end
 
-    subgraph Events_Detail["監視対象の例"]
+    subgraph EventsDetail["監視対象の例"]
         E1[ブランチ作成・削除の連打]
         E2[workflow_dispatch急増]
         E3[Runner登録・削除]
@@ -345,22 +344,21 @@ flowchart LR
     end
 
     subgraph Processing["ログ処理"]
-        Collector[ログ収集<br/>(EventBridge/PubSub)]
+        Collector[ログ収集]
         Parser[イベント解析]
     end
 
     subgraph Alert["アラート"]
-        SIEM[SIEM<br/>Splunk/Datadog等]
+        SIEM[SIEM]
         Slack[Slack通知]
         SOC[SOC担当者]
     end
 
-    Events --> AuditLog
     E1 --> Events
     E2 --> Events
     E3 --> Events
     E4 --> Events
-
+    Events --> AuditLog
     AuditLog --> Collector
     Collector --> Parser
     Parser -->|異常検知| SIEM
@@ -386,7 +384,7 @@ flowchart LR
 
 #### 4. 署名前デコードと不正トランザクションの検知
 
-最後に、これは前回の記事の復習になりますが、たとえ API が改ざんされてしまっても最終的な署名の段階でユーザーが中身をしっかり確認すれば、被害は防げます。特に暗号資産のトランザクションのように、一度署名したら取り消せない操作については、**「デコードされていない署名は絶対にしない」**を徹底し、必ず人間が読める形にデコードして意図しない操作が含まれていないかを確認するプロセスを挟むことが最後の砦として非常に重要です。
+最後に、これは前回の記事の復習になりますが、たとえ API が改ざんされてしまっても最終的な署名の段階でユーザーが中身をしっかり確認すれば、被害は防げます。特に暗号資産のトランザクションのように、一度署名したら取り消せない操作については、「**デコードされていない署名は絶対にしない**」を徹底し、必ず人間が読める形にデコードして意図しない操作が含まれていないかを確認するプロセスを挟むことが最後の砦として非常に重要です。
 
 ## 補足：その他の防御策
 
