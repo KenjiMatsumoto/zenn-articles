@@ -24,28 +24,7 @@ Token がどうやって漏洩したか、その具体的な経路までは「�
 
 では早速、漏洩した GitHub Access Token がどのように悪用され、資産流出に至ったのか、その具体的な流れを図と一緒に見ていきましょう。
 
-```mermaid
-flowchart TD
-    A[①GitHub Access Token漏洩] --> B[②CI実行の悪用]
-    B --> C[悪意のあるブランチを作成・即削除<br/>大量のファイル変更で隠蔽]
-    C --> D[③Secrets収集・クラウド横展開]
-    D --> E[CI/CD環境変数から<br/>AWS/GCP認証情報を窃取]
-    E --> F[④Kubernetes侵入]
-    F --> G[稼働中のPodに<br/>悪性ペイロードを注入]
-    G --> H[⑤APIロジック改ざん]
-    H --> I[deactivate stakeに<br/>悪意のあるTxを同梱]
-    I --> J[⑥不正な署名]
-    J --> K[ユーザーが改ざんされた<br/>Txに署名してしまう]
-    K --> L[💰資産流出]
-
-    style A fill:#ffcccc,stroke:#cc0000,stroke-width:2px
-    style L fill:#ffcccc,stroke:#cc0000,stroke-width:2px
-    style B fill:#fff4cc,stroke:#ff9900,stroke-width:2px
-    style D fill:#fff4cc,stroke:#ff9900,stroke-width:2px
-    style F fill:#fff4cc,stroke:#ff9900,stroke-width:2px
-    style H fill:#fff4cc,stroke:#ff9900,stroke-width:2px
-    style J fill:#fff4cc,stroke:#ff9900,stroke-width:2px
-```
+![攻撃経路フロー図](/images/validator-security-incident-2025/攻撃経路フロー図.png)
 
 この図の流れを、各ステップごとにもう少し詳しく見ていきます。
 
@@ -172,43 +151,7 @@ GitHub Actions のワークフロー実行中に自動で発行される `GITHUB
 
 攻撃者は盗んだ Token を使って CI/CD を悪用しました。ならば、その CI/CD から本番環境へ至る道を、できるだけ狭く、そして監視の行き届いたものにしておくことが重要です。具体的には、以下の 5 つの対策が非常に有効です。
 
-```mermaid
-flowchart TB
-    subgraph GitHub["GitHub Repository"]
-        PR[Pull Request]
-        Main[Main Branch]
-    end
-
-    subgraph Actions["GitHub Actions"]
-        Workflow[Workflow実行
-<small>permissions: read</small>]
-        Env[Environment: production]
-    end
-
-    subgraph Security["セキュリティ対策"]
-        Approval[レビュワー承認]
-        EnvSecret[Environment Secrets
-本番認証情報]
-    end
-
-    subgraph Production["本番環境"]
-        Deploy[デプロイ実行]
-        Cloud[AWS/GCP/Azure]
-    end
-
-    PR -->|❌自動実行禁止| Workflow
-    Main -->|✅mainのみ許可| Workflow
-    Workflow --> Env
-    Env --> Approval
-    Approval -->|承認後のみ| EnvSecret
-    EnvSecret --> Deploy
-    Deploy --> Cloud
-
-    style Approval fill:#ccffcc,stroke:#00cc00,stroke-width:2px
-    style EnvSecret fill:#ccffcc,stroke:#00cc00,stroke-width:2px
-    style Workflow fill:#cce5ff,stroke:#0066cc,stroke-width:2px
-    style PR fill:#ffcccc,stroke:#cc0000,stroke-width:2px
-```
+![CICD経路限定フロー図](/images/validator-security-incident-2025/CICD経路限定フロー図.png)
 
 - **SecretsはEnvironmentを利用して分離し、レビュワーの承認を強制する**
   GitHub Actions の**Environments**という機能を使うと、「本番環境用」「ステージング環境用」といったように、環境ごとに Secrets を分離できる。さらに、「`production` 環境へのデプロイは、セキュリティチームの誰かが承認しないと実行できない」といった**承認ルール**を設定できる。これにより、たとえ攻撃者が CI/CD をトリガーできても、承認者のチェックを突破しない限り本番環境には手出しできなくなる。
@@ -273,28 +216,7 @@ jobs:
 
 そもそも、PAT のような有効期限の長い「長期シークレット」の存在自体が大きなリスクです。可能な限り、有効期限の短い「短期シークレット」に置き換えていきましょう。そのための**切り札となる対策がOIDC (OpenID Connect) 連携**です。
 
-```mermaid
-sequenceDiagram
-    participant GHA as GitHub Actions<br/>Workflow
-    participant OIDC as OIDC Provider<br/>(GitHub)
-    participant Cloud as Cloud Provider<br/>(AWS/GCP/Azure)
-    participant Resource as クラウドリソース
-
-    Note over GHA,Cloud: 従来の方法：長期シークレット
-    GHA->>GHA: ❌長期的なアクセスキーを<br/>Secretsに保存
-    GHA->>Cloud: ❌アクセスキーで認証
-    Cloud->>Resource: リソース操作
-
-    Note over GHA,Cloud: OIDC連携：短期トークン
-    GHA->>OIDC: ①JWTトークンをリクエスト
-    OIDC->>GHA: ②JWTトークンを発行
-    GHA->>Cloud: ③JWTトークンで認証<br/>(AssumeRoleWithWebIdentity)
-    Cloud->>Cloud: ④トークンを検証
-    Cloud->>GHA: ⑤短期的な認証情報を発行<br/>(有効期限: 1時間程度)
-    GHA->>Resource: ⑥短期認証情報でリソース操作
-
-    Note over GHA,Cloud: ✅長期シークレット不要！<br/>✅漏洩リスク大幅減少！
-```
+![長期シークレット撤廃フロー図](/images/validator-security-incident-2025/長期シークレット撤廃フロー図.png)
 
 OIDC 連携を使えば、クラウドの長期的なアクセスキーを GitHub の Secrets に保存する必要がなくなります。ワークフローが実行されるたびに、クラウド側から有効期限の短い一時的な認証情報が発行され、それを使って安全にクラウドを操作できます。これは現代の CI/CD セキュリティにおける**最重要対策の一つ**です。
 
@@ -329,49 +251,7 @@ jobs:
 
 本稿のインシデントでは、攻撃者はブランチを大量に作成・削除して CI をトリガーしました。このような異常なアクティビティを早期に検知するためには、GitHub の監査ログを常時 SIEM（Security Information and Event Management）ツールや Slack などに転送し、監視する仕組みを構築しましょう。
 
-```mermaid
-flowchart TB
-    subgraph GitHub["GitHub Organization"]
-        Events[監視対象イベント]
-        AuditLog[Audit Log API]
-    end
-
-    subgraph EventsDetail["監視対象の例"]
-        E1[ブランチ作成・削除の連打]
-        E2[workflow_dispatch急増]
-        E3[Runner登録・削除]
-        E4[Secrets更新]
-    end
-
-    subgraph Processing["ログ処理"]
-        Collector[ログ収集]
-        Parser[イベント解析]
-    end
-
-    subgraph Alert["アラート"]
-        SIEM[SIEM]
-        Slack[Slack通知]
-        SOC[SOC担当者]
-    end
-
-    E1 --> Events
-    E2 --> Events
-    E3 --> Events
-    E4 --> Events
-    Events --> AuditLog
-    AuditLog --> Collector
-    Collector --> Parser
-    Parser -->|異常検知| SIEM
-    Parser -->|異常検知| Slack
-    SIEM --> SOC
-    Slack --> SOC
-
-    style E1 fill:#ffcccc,stroke:#cc0000,stroke-width:2px
-    style E2 fill:#ffcccc,stroke:#cc0000,stroke-width:2px
-    style E3 fill:#ffcccc,stroke:#cc0000,stroke-width:2px
-    style E4 fill:#ffcccc,stroke:#cc0000,stroke-width:2px
-    style SOC fill:#ccffcc,stroke:#00cc00,stroke-width:2px
-```
+![Github監視フロー図](/images/validator-security-incident-2025/Github監視フロー図.png)
 
 特に、以下のようなイベントはアラートの対象とすべきです。
 
