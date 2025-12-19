@@ -169,9 +169,9 @@ Private Repository の場合、「どうせ非公開だから」とセキュリ�
 - **コミットハッシュを固定する**: ワークフローで利用するサードパーティ製の Action は、`actions/checkout@v4` のようなタグの指定ではなく、`actions/checkout@a12a3943b4bde6ff22b8f99495b33c59aed7c3d2` のように**コミットハッシュで固定**します。これにより、Action の作成者が悪意のあるバージョンをタグに上書きするといった、サプライチェーン攻撃のリスクを予防できます。
   _設定方法: Organizationの `Settings` > `Actions` > `General` で `Allow Omakase, and select non-Omakase, actions and reusable workflows` を選択し、`Require actions to be pinned to a full-length commit SHA` にチェックを入れる。_
 
-#### 7. **チケット/チャット/スクリーンショット対策（綕密情報の共有禁止）**
+#### 7. **チケット/チャット/スクリーンショット対策（秘密情報の共有禁止）**
 
-- **とにかく貼らない、写さない**: これはもう運用と文化の話になるが、「綕密情報は絶対にパブリックな場所へは共有しない」というルールを彸底する。Issue や Pull Request のコメント、Slack などのチャットツールに Token、パスワード、API キーなどを貼り付けてはいけない。
+- **とにかく貼らない、写さない**: これはもう運用と文化の話になるが、「秘密情報は絶対にパブリックな場所へは共有しない」というルールを彸底する。Issue や Pull Request のコメント、Slack などのチャットツールに Token、パスワード、API キーなどを貼り付けてはいけない。
 
 ---
 
