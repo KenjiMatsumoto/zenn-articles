@@ -3,8 +3,9 @@ title: "【60億円流出】GitHub Token流出から始まったAPI改ざんと�
 emoji: "🔐"
 type: "tech"
 topics: ["CICD", "github", "AWS", "Token", "security"]
-published: false
+published: true
 publication_name: omakase
+published_at: 2025-12-26 15:00
 ---
 
 ## 前回の振り返り
